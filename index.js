@@ -15,71 +15,73 @@ const port = 3000;
 const ERROR_RATE = 0;
 
 const getRandomInt = () => {
-  // generates integer from 0 to 99:
-  return Math.floor(Math.random() * Math.floor(100));
+    // generates integer from 0 to 99:
+    return Math.floor(Math.random() * Math.floor(100));
 };
 
 const potentialErrors = [
-  "No cat for you!",
-  "Sad day. No kitten here.",
-  "Please try again!",
+    "No cat for you!",
+    "Sad day. No kitten here.",
+    "Please try again!",
 ];
 
 const generateRandomError = () => {
-  const i = getRandomInt();
+    const i = getRandomInt();
 
-  if (i < ERROR_RATE) {
-    const errorI = i % potentialErrors.length;
-    const error = potentialErrors[errorI];
-    throw Error(error);
-  }
+    if (i < ERROR_RATE) {
+        const errorI = i % potentialErrors.length;
+        const error = potentialErrors[errorI];
+        throw Error(error);
+    }
 };
 
 const kitten = {
-  score: 0,
-  comments: [],
+    score: 0,
+    comments: [],
 };
 
 app.get("/", (req, res) => {
-  res.sendFile(path.join(__dirname + "/public/index.html"));
+    res.sendFile(path.join(__dirname + "/public/index.html"));
 });
 
 app.get("/kitten/image", (req, res) => {
-  try {
-    generateRandomError();
-    axios
-      .get("https://api.thecatapi.com/v1/images/search?size=small")
-      .then((image) => {
-        kitten.score = 0;
-        kitten.comments = [];
-        kitten.src = image.data[0].url;
-        res.json(kitten);
-      });
-  } catch (e) {
-    res.status(503).send({ message: e.message });
-  }
+    try {
+        generateRandomError();
+        axios
+            .get("https://api.thecatapi.com/v1/images/search?size=small")
+            .then((image) => {
+                kitten.score = 0;
+                kitten.comments = [];
+                kitten.src = image.data[0].url;
+                res.json(kitten);
+            });
+    } catch (e) {
+        res.status(503).send({ message: e.message });
+    }
 });
 
 app.patch("/kitten/upvote", (req, res) => {
-  kitten.score += 1;
-  res.json({ score: kitten.score });
+    kitten.score += 1;
+    res.json({ score: kitten.score });
 });
 
 app.patch("/kitten/downvote", (req, res) => {
-  kitten.score -= 1;
-  res.json({ score: kitten.score });
+    kitten.score -= 1;
+    res.json({ score: kitten.score });
 });
 
 app.post("/kitten/comments", (req, res) => {
-  const comment = req.body.comment;
-  kitten.comments = [...kitten.comments, comment];
-  res.json({ comments: kitten.comments });
+    const comment = req.body.comment;
+    kitten.comments = [...kitten.comments, comment];
+    res.json({ comments: kitten.comments });
 });
 
 app.delete("/kitten/comments/:id", (req, res) => {
-  const updatedComments = kitten.comments.filter((_, i) => i != req.params.id);
-  kitten.comments = updatedComments;
-  res.json({ comments: kitten.comments });
+    const updatedComments = kitten.comments.filter(
+        (_, i) => i != req.params.id
+    );
+    kitten.comments = updatedComments;
+    res.json({ comments: kitten.comments });
 });
 
 app.listen(port, () => console.log(`Example app listening on port ${port}!`));
